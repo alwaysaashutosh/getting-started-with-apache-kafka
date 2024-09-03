@@ -19,7 +19,7 @@ func Consumer() {
 		panic(err)
 	}
 
-	err = c.SubscribeTopics([]string{"myTopic", "^aRegex.*[Tt]opic"}, nil)
+	err = c.SubscribeTopics([]string{"myTopic"}, nil)
 
 	if err != nil {
 		panic(err)

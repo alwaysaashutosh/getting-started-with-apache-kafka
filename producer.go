@@ -7,8 +7,8 @@ import (
 )
 
 func Producer() {
-
-	p, err := kafka.NewProducer(&kafka.ConfigMap{"bootstrap.servers": "localhost"})
+	// kafka.NewAdminClient()
+	p, err := kafka.NewProducer(KafkaConfig)
 	if err != nil {
 		panic(err)
 	}
@@ -23,17 +23,20 @@ func Producer() {
 				if ev.TopicPartition.Error != nil {
 					fmt.Printf("Delivery failed: %v\n", ev.TopicPartition)
 				} else {
-					fmt.Printf("Delivered message to %v\n", ev.TopicPartition)
+					fmt.Printf("Delivered message to topic: %v , partition: %d, value: %s\n", *ev.TopicPartition.Topic, ev.TopicPartition.Partition, string(ev.Value))
 				}
 			}
 		}
 	}()
 
+	// newgenmsg := []string{"welcome", "to", "the", "world", "of", "RE"}
+	defaultmsg := []string{"Welcome", "to", "the", "Confluent", "Kafka", "Golang", "client"}
+
 	// Produce messages to topic (asynchronously)
 	topic := "myTopic"
-	for _, word := range []string{"Welcome", "to", "the", "Confluent", "Kafka", "Golang", "client"} {
+	for _, word := range defaultmsg {
 		p.Produce(&kafka.Message{
-			TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: kafka.PartitionAny},
+			TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: 3},
 			Value:          []byte(word),
 		}, nil)
 	}
