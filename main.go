@@ -12,4 +12,6 @@ func main() {
 	// newAdminClient().describeConsumerGroup([]string{"myGroup"})
 	// newAdminClient().listTopics()
 
+        // some random comments .
+
 }
