@@ -1,1 +1,1 @@
-# getting-started-with-apache-kafka
+# getting-started-with-apache-confluentic
