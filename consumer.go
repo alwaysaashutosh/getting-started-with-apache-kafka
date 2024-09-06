@@ -7,31 +7,41 @@ import (
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
-func Consumer() {
+type kafkaConsumerClient struct {
+	Topic []string
+	*kafka.Consumer
+}
 
-	c, err := kafka.NewConsumer(&kafka.ConfigMap{
+func newConsumerClient() *kafkaConsumerClient {
+	client, err := kafka.NewConsumer(&kafka.ConfigMap{
 		"bootstrap.servers": "localhost",
-		"group.id":          "myGroup",
+		"group.id":          "mynewGroup",
 		"auto.offset.reset": "earliest",
 	})
 
 	if err != nil {
 		panic(err)
 	}
+	return &kafkaConsumerClient{
+		Topic:    []string{"myTopic"},
+		Consumer: client, // Assign the client to the Producer field
+	}
+}
+func (c *kafkaConsumerClient) ConsumeMsg() {
 
-	err = c.SubscribeTopics([]string{"myTopic"}, nil)
+	err := c.SubscribeTopics(c.Topic, nil)
 
 	if err != nil {
 		panic(err)
 	}
-
+	defer c.Close()
 	// A signal handler or similar could be used to set this to false to break the loop.
 	run := true
 
 	for run {
 		msg, err := c.ReadMessage(time.Second)
 		if err == nil {
-			fmt.Printf("Message on %s: %s\n", msg.TopicPartition, string(msg.Value))
+			fmt.Printf("Message on topic: [%s], partition: [%d],  key: [%s], value: [%s]\n", *msg.TopicPartition.Topic, msg.TopicPartition.Partition, string(msg.Key), string(msg.Value))
 		} else if !err.(kafka.Error).IsTimeout() {
 			// The client will automatically try to recover from all errors.
 			// Timeout is not considered an error because it is raised by
@@ -40,5 +50,4 @@ func Consumer() {
 		}
 	}
 
-	c.Close()
 }

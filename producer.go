@@ -2,19 +2,31 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
 )
 
-func Producer() {
-	// kafka.NewAdminClient()
-	p, err := kafka.NewProducer(KafkaConfig)
+type kafkaProducerClient struct {
+	Key       string
+	Topic     string
+	Partition int32
+	*kafka.Producer
+}
+
+func newProducerClient() *kafkaProducerClient {
+	client, err := kafka.NewProducer(KafkaConfig)
 	if err != nil {
 		panic(err)
 	}
+	return &kafkaProducerClient{
+		Topic:     "myTopic",
+		Partition: 3,
+		Producer:  client, // Assign the client to the Producer field
+	}
+}
 
-	defer p.Close()
-
+func (p *kafkaProducerClient) ProduceMsg(msg []string) {
 	// Delivery report handler for produced messages
 	go func() {
 		for e := range p.Events() {
@@ -29,21 +41,15 @@ func Producer() {
 		}
 	}()
 
-	// newgenmsg := []string{"welcome", "to", "the", "world", "of", "RE"}
-	defaultmsg := []string{"Welcome", "to", "the", "Confluent", "Kafka", "Golang", "client"}
-
-	// Produce messages to topic (asynchronously)
-	topic := "myTopic"
-	for _, word := range defaultmsg {
+	for _, word := range msg {
 		p.Produce(&kafka.Message{
-			TopicPartition: kafka.TopicPartition{Topic: &topic, Partition: 3},
+			TopicPartition: kafka.TopicPartition{Topic: &p.Topic, Partition: p.Partition},
 			Value:          []byte(word),
+			Key:            []byte(p.Key),
+			Timestamp:      time.Now(),
 		}, nil)
 	}
 
 	// Wait for message deliveries before shutting down
 	p.Flush(15 * 1000)
-}
-func RandPrint(val string) {
-	fmt.Printf("hello :%v\n", val)
 }
