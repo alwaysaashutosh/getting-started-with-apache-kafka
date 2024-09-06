@@ -19,6 +19,7 @@ func newConsumerClient() *kafkaConsumerClient {
 		"auto.offset.reset": "earliest",
 	})
 
+	// changes in consumer
 	if err != nil {
 		panic(err)
 	}
